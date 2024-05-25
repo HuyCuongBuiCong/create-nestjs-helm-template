@@ -21,6 +21,19 @@ This project is designed to speed up the process of creating a NestJS service an
 
 5. Add Helm to your service by running `npm run add-helm <service-name>`. Replace `<service-name>` with the name of your service.
 
+```bash
+npm run create-service order
+npm run add-helm order
+npm run create-service product
+npm run add-helm product
+```
+![img.png](img/output-k8s.png)
+
+
+![img.png](img/img.png)
+
+
+
 ## Scripts
 
 - `create-service`: This script creates a new NestJS service. It installs the NestJS CLI (if not already installed), creates a new NestJS project, generates the necessary components (module, service, controller), and removes the test files.
