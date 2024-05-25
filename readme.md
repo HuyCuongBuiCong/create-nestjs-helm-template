@@ -17,7 +17,9 @@ This project is designed to speed up the process of creating a NestJS service an
 
 3. Create a new NestJS service by running `npm run create-service <service-name>`. Replace `<service-name>` with the name of your service.
 
-4. Add Helm to your service by running `npm run add-helm <service-name>`. Replace `<service-name>` with the name of your service.
+4. Start your Kubernetes cluster. If you're using Docker Desktop, you can enable Kubernetes from the settings.
+
+5. Add Helm to your service by running `npm run add-helm <service-name>`. Replace `<service-name>` with the name of your service.
 
 ```bash
 npm run create-service order
