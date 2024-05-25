@@ -13,13 +13,11 @@ This project is designed to speed up the process of creating a NestJS service an
 
 1. Clone this repository to your local machine.
 
-2. Install the dependencies by running `npm install`.
+2. Make sure the scripts `create-service.js` and `add-helm.js` have execute permissions. You can add execute permissions by running `chmod +x create-service.js add-helm.js`.
 
-3. Make sure the scripts `create-service.js` and `add-helm.js` have execute permissions. You can add execute permissions by running `chmod +x create-service.js add-helm.js`.
+3. Create a new NestJS service by running `npm run create-service <service-name>`. Replace `<service-name>` with the name of your service.
 
-4. Create a new NestJS service by running `npm run create-service <service-name>`. Replace `<service-name>` with the name of your service.
-
-5. Add Helm to your service by running `npm run add-helm <service-name>`. Replace `<service-name>` with the name of your service.
+4. Add Helm to your service by running `npm run add-helm <service-name>`. Replace `<service-name>` with the name of your service.
 
 ```bash
 npm run create-service order
