@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { execSync } = require('child_process');
+const {execSync} = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const dockerFileContent = require("./template/docker");
@@ -8,14 +8,18 @@ const createValuesYaml = require("./template/create-values-yaml");
 const createDeploymentYaml = require("./template/create-deployment-yaml");
 const createServiceYaml = require("./template/create-service-yaml");
 const createHelpersTpl = require("./template/create-helper-yaml");
-
 const serviceName = process.argv[2];
+const serviceDir = path.join(process.cwd(), serviceName);
+const helmDir = path.join(serviceDir, 'helm');
+const serviceHelmDir = path.join(helmDir, serviceName);
+
+
 if (!serviceName) {
     console.error('Please provide a service name');
     process.exit(1);
 }
 
-const serviceDir = path.join(process.cwd(), serviceName);
+
 if (!fs.existsSync(serviceDir)) {
     console.error(`Directory for service ${serviceName} does not exist.`);
     process.exit(1);
@@ -23,7 +27,7 @@ if (!fs.existsSync(serviceDir)) {
 
 const buildDockerImage = () => {
     console.log(`Building Docker image for ${serviceName}...`);
-    execSync(`docker build -t ${serviceName}:latest .`, { stdio: 'inherit' });
+    execSync(`docker build -t ${serviceName}:latest .`, {stdio: 'inherit'});
 };
 
 const createDockerFile = () => {
@@ -33,20 +37,22 @@ const createDockerFile = () => {
 
 const createHelmChart = () => {
     console.log('Creating Helm chart...');
-    execSync(`helm create ${serviceName}`, { stdio: 'inherit' });
-    const helmDir = path.join(serviceDir, 'helm', serviceName);
     if (!fs.existsSync(helmDir)) {
-        fs.mkdirSync(helmDir, { recursive: true });
+        fs.mkdirSync(helmDir, {recursive: true});
     }
-    createHelmFiles(helmDir, serviceName);
+    process.chdir(helmDir);
+    execSync(`helm create ${serviceName}`, {stdio: 'inherit'});
+    overrideHelmFiles(helmDir, serviceName);
+    process.chdir(serviceDir);
 };
 
-const createHelmFiles = (helmDir, serviceName) => {
-    createChartYaml(helmDir);
-    createValuesYaml(helmDir, serviceName);
-    createDeploymentYaml(helmDir, serviceName);
-    createServiceYaml(helmDir, serviceName);
-    createHelpersTpl(helmDir, serviceName);
+const overrideHelmFiles = (helmDir, serviceName) => {
+    const defaultHelmDir = path.join(helmDir, serviceName);
+    createChartYaml(defaultHelmDir);
+    createValuesYaml(defaultHelmDir, serviceName);
+    createDeploymentYaml(defaultHelmDir, serviceName);
+    createServiceYaml(defaultHelmDir, serviceName);
+    createHelpersTpl(defaultHelmDir, serviceName);
 };
 
 const createChartYaml = (helmDir) => {
@@ -61,35 +67,32 @@ appVersion: "1.0"
 };
 
 
-
 const stopHelmRelease = () => {
     const helmReleaseName = serviceName;
     console.log(`Stopping existing Helm release ${helmReleaseName}...`);
     try {
-        execSync(`helm uninstall ${helmReleaseName}`, { stdio: 'inherit' });
+        execSync(`helm uninstall ${helmReleaseName}`, {stdio: 'inherit'});
     } catch (error) {
         console.warn(`Helm release ${helmReleaseName} does not exist or failed to uninstall.`);
     }
 }
 
-const helmInstall = () => {
+const helmInstall = (helmDir) => {
     const helmReleaseName = serviceName;
-    const helmDir = path.join(serviceDir, 'helm', serviceName);
-
-
     console.log(`Installing ${helmReleaseName} with Helm...`);
-    execSync(`helm install ${helmReleaseName} ${helmDir}`, { stdio: 'inherit' });
+    console.log(`helm install ${helmReleaseName} ${helmDir}`)
+    execSync(`helm install ${helmReleaseName} ${helmDir}`, {stdio: 'inherit'});
 };
 
 const main = () => {
     try {
         process.chdir(serviceDir);
-        execSync(`kubectl config use-context docker-desktop`, { stdio: 'inherit' });
+        execSync(`kubectl config use-context docker-desktop `, {stdio: 'inherit'});
         createDockerFile();
-        createHelmChart();
         buildDockerImage();
+        createHelmChart();
         stopHelmRelease()
-        helmInstall();
+        helmInstall(serviceHelmDir);
         console.log(`${serviceName} service is up and running.`);
     } catch (error) {
         console.error(`Failed to run service ${serviceName}:`, error);

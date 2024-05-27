@@ -23,6 +23,10 @@ nodeSelector: {}
 
 tolerations: []
 
+serviceAccount: {}
+
+autoscaling: { enabled: false}
+
 affinity: {}
   `;
     fs.writeFileSync(path.join(helmDir, 'values.yaml'), valuesYamlContent.trim());
