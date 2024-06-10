@@ -38,21 +38,34 @@ const createDockerFile = () => {
 const createHelmChart = () => {
     console.log('Creating Helm chart...');
     if (!fs.existsSync(helmDir)) {
-        fs.mkdirSync(helmDir, {recursive: true});
+        fs.mkdirSync(helmDir, { recursive: true });
     }
     process.chdir(helmDir);
-    execSync(`helm create ${serviceName}`, {stdio: 'inherit'});
+    execSync(`helm create ${serviceName}`, { stdio: 'inherit' });
+
+    const nestedHelmDir = path.join(helmDir, serviceName);
+
+    // Move files from nested directory to helm directory
+    const files = fs.readdirSync(nestedHelmDir);
+    files.forEach(file => {
+        const oldPath = path.join(nestedHelmDir, file);
+        const newPath = path.join(helmDir, file);
+        fs.renameSync(oldPath, newPath);
+    });
+
+    // Remove the nested directory
+    fs.rmdirSync(nestedHelmDir);
+
     overrideHelmFiles(helmDir, serviceName);
     process.chdir(serviceDir);
 };
 
 const overrideHelmFiles = (helmDir, serviceName) => {
-    const defaultHelmDir = path.join(helmDir, serviceName);
-    createChartYaml(defaultHelmDir);
-    createValuesYaml(defaultHelmDir, serviceName);
-    createDeploymentYaml(defaultHelmDir, serviceName);
-    createServiceYaml(defaultHelmDir, serviceName);
-    createHelpersTpl(defaultHelmDir, serviceName);
+    createChartYaml(helmDir);
+    createValuesYaml(helmDir, serviceName);
+    createDeploymentYaml(helmDir, serviceName);
+    createServiceYaml(helmDir, serviceName);
+    createHelpersTpl(helmDir, serviceName);
 };
 
 const createChartYaml = (helmDir) => {

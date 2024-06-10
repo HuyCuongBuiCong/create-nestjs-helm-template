@@ -19,11 +19,10 @@ const createNestProject = () => {
     process.chdir(serviceName);
 };
 
-const toCamelCase = (str) => {
-    return str
-        .split(' ') // Split into words
-        .map((word, index) => index === 0 ? word.toLowerCase() : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize first letter of each word except the first
-        .join(''); // Join words back into a string
+const capitalizeWords = (str) => {
+    return str.split('-') // Split the string into words
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize the first letter of each word
+        .join(''); // Join the words back into a sentence
 }
 
 const generateNestComponents = () => {
@@ -31,17 +30,17 @@ const generateNestComponents = () => {
     execSync(`nest generate module ${serviceName}`, {stdio: 'inherit'});
     execSync(`nest generate service ${serviceName}`, {stdio: 'inherit'});
     execSync(`nest generate controller ${serviceName}`, {stdio: 'inherit'});
-    const functionName = toCamelCase(serviceName);
+    const functionName = capitalizeWords(serviceName);
 
     const controllerContent = `
 import { Controller, Get } from '@nestjs/common';
 
 @Controller('${serviceName}')
 export class ${capitalizeFirstLetter(serviceName)}Controller {
-@Get()
-get${functionName}() {
-    return 'Hello ${serviceName} Service';
-}
+    @Get()
+    get${functionName}() {
+        return 'Hello ${serviceName} Service';
+    }
 }
     `;
     fs.writeFileSync(`src/${serviceName}/${serviceName}.controller.ts`, controllerContent.trim());
